@@ -1,44 +1,63 @@
 # sync-obsidian.ps1
-# 옵시디언 볼트 → Quartz content 폴더 동기화 스크립트
+# publish: true 가 있는 노트만 Quartz content 폴더로 동기화
 
 $VaultPath = "C:\Users\phase\Documents\Obsidian\John's Brain"
 $ContentPath = "$PSScriptRoot\content"
 
-Write-Host "🌸 옵시디언 → Quartz 동기화 시작..." -ForegroundColor Cyan
+Write-Host "Syncing publish:true notes to Quartz..." -ForegroundColor Cyan
 
-# 기존 content 제거 후 새로 복사
-Remove-Item -Recurse -Force "$ContentPath\*" -ErrorAction SilentlyContinue
+# 기존 content 초기화 (index.md 제외)
+Get-ChildItem -Path $ContentPath -Recurse -File |
+    Where-Object { $_.Name -ne "index.md" } |
+    Remove-Item -Force -ErrorAction SilentlyContinue
 
-# 복사 (제외 목록: .obsidian, 이미지/첨부 대용량 폴더 등)
+Get-ChildItem -Path $ContentPath -Directory |
+    Where-Object { $_.GetFiles("*", "AllDirectories").Count -eq 0 } |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
 $ExcludeDirs = @('.obsidian', '.trash', 'private', 'archive')
-$ExcludeExts = @('*.pptx', '*.docx', '*.xlsx', '*.zip', '*.mp4', '*.mov')
+$published = 0
+$skipped = 0
 
-Get-ChildItem -Path $VaultPath -Recurse | Where-Object {
+# 마크다운 파일 순회
+Get-ChildItem -Path $VaultPath -Recurse -Filter "*.md" | Where-Object {
     $item = $_
-    $isExcludedDir = $false
+    $isExcluded = $false
     foreach ($excDir in $ExcludeDirs) {
-        if ($item.FullName -like "*\$excDir\*" -or $item.Name -eq $excDir) {
-            $isExcludedDir = $true
-            break
-        }
+        if ($item.FullName -like "*\$excDir\*") { $isExcluded = $true; break }
     }
-    $isExcludedExt = $false
-    foreach ($excExt in $ExcludeExts) {
-        if ($item.Name -like $excExt) {
-            $isExcludedExt = $true
-            break
-        }
+    -not $isExcluded
+} | ForEach-Object {
+    # frontmatter에서 publish: true 확인
+    $content = Get-Content $_.FullName -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+    if ($content -match "(?m)^publish:\s*true") {
+        $relativePath = $_.FullName.Substring($VaultPath.Length + 1)
+        $destPath = Join-Path $ContentPath $relativePath
+        $destDir = Split-Path $destPath -Parent
+        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+        Copy-Item -Path $_.FullName -Destination $destPath -Force
+        $published++
+        Write-Host "  + $($_.Name)" -ForegroundColor Green
+    } else {
+        $skipped++
     }
-    -not $isExcludedDir -and -not $isExcludedExt -and -not $item.PSIsContainer
+}
+
+# 이미지/첨부파일은 publish:true 노트와 같은 폴더 것만 복사
+$imgExts = @('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.pdf')
+Get-ChildItem -Path $VaultPath -Recurse -File | Where-Object {
+    $imgExts -contains $_.Extension.ToLower()
 } | ForEach-Object {
     $relativePath = $_.FullName.Substring($VaultPath.Length + 1)
     $destPath = Join-Path $ContentPath $relativePath
     $destDir = Split-Path $destPath -Parent
-    New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-    Copy-Item -Path $_.FullName -Destination $destPath -Force
+    # 해당 폴더에 publish된 md가 있을 때만 복사
+    if (Test-Path $destDir) {
+        Copy-Item -Path $_.FullName -Destination $destPath -Force -ErrorAction SilentlyContinue
+    }
 }
 
-$noteCount = (Get-ChildItem -Path $ContentPath -Filter "*.md" -Recurse).Count
-Write-Host "✅ 동기화 완료! 마크다운 파일: $noteCount 개" -ForegroundColor Green
 Write-Host ""
-Write-Host "다음 단계: npx quartz sync" -ForegroundColor Yellow
+Write-Host "Done! Published: $published notes | Skipped: $skipped notes" -ForegroundColor Green
+Write-Host ""
+Write-Host "Next: git add -A && git commit -m 'update' && git push" -ForegroundColor Yellow
