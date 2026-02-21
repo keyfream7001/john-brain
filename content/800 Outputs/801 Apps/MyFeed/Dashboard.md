@@ -1,0 +1,40 @@
+---
+tags: [type/dashboard, type/project, project/app, dev/flutter, dev/supabase, status/inProgress]
+created: 2026-02-03
+updated: 2026-07-17
+---
+
+# ?�� MyFeed - ?�고리즘 ?�는 개인 RSS ?�드 리더
+
+## ?�� 개요
+- **?�명**: ?�고리즘 ?�이, ?��? ?�택??콘텐츠만 ?�간?�으�?보는 개인 ?�드 ??- **기술 ?�택**: Flutter 3.x, Provider, Supabase, webfeed_plus, SharedPreferences
+- **?�치**: C:\JohnCodeQ\MyFeed\
+
+## ?���?주요 기능
+- RSS/Atom ?�드 URL 구독 (?�효???�동 검�?
+- 모든 ?�스 ?�간???�합 ?�드 (?�고리즘 ?�음)
+- ?�스�?카테고리�??�터�?- ?�워???�터�?(보기 ?��? 주제 차단)
+- 북마??(?�클�??�?? ?�그 분류, 메모)
+- ?�음/?�읽???�시, Pull-to-refresh
+
+## ?�� ?�로?�트 구조
+```
+lib/
+?��??� config/            # ?�정
+?��??� models/            # feed_source, feed_item, bookmark, filter
+?��??� providers/         # feed, bookmark, filter
+?��??� services/          # feed_service, storage_service
+?��??� screens/           # main, feed, sources, bookmarks, settings
+?��??� widgets/           # feed_card, source_filter_chip, add_feed_dialog
+?��??� theme/             # app_theme
+?��??� main.dart
+```
+추�?: database/schema.sql (Supabase ?�키�?
+
+## ?�� ?�재 ?�태
+MVP ?�성 - 로컬 RSS 리더 ?�작
+
+## ?�� ?�음 ?�계
+- Supabase ?�라?�드 ?�기??- ?�스?�터 ?�메???�싱
+- ?�레그램 ?�간 브리??- ?�프?�인 모드
+- ??버전

@@ -8,16 +8,16 @@ import * as Plugin from "./quartz/plugins"
  */
 const config: QuartzConfig = {
   configuration: {
-    pageTitle: "Quartz 4",
-    pageTitleSuffix: "",
+    pageTitle: "John's Brain 🧠",
+    pageTitleSuffix: " | John's Brain",
     enableSPA: true,
     enablePopovers: true,
     analytics: {
       provider: "plausible",
     },
-    locale: "en-US",
-    baseUrl: "quartz.jzhao.xyz",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    locale: "ko-KR",
+    baseUrl: "keyfream7001.github.io/john-brain",
+    ignorePatterns: ["private", "templates", ".obsidian", "archive"],
     defaultDateType: "modified",
     theme: {
       fontOrigin: "googleFonts",
