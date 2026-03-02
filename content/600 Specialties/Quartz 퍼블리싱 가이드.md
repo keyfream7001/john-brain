@@ -8,7 +8,7 @@ publish: true
 created: 2026-02-21
 summary: 옵시디언 노트를 선택적으로 웹에 공개하는 Quartz 퍼블리싱 시스템 사용법
 ---
-
+publish: true
 # Quartz 퍼블리싱 가이드
 
 > 옵시디언 노트를 **선택한 것만** 웹에 공개하는 시스템
